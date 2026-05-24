@@ -1,7 +1,6 @@
 # 基金分析系统依赖
-# 目前使用Python标准库，无需额外依赖
-
-# 如需接入真实API，可添加以下依赖：
-# requests>=2.31.0
-# pandas>=2.0.0
-# numpy>=1.24.0
+requests>=2.31.0
+pandas>=2.0.0
+numpy>=1.24.0
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
