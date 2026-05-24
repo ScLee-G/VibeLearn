@@ -125,14 +125,93 @@ python fund_analyzer.py
 
 ```
 fund_analyzer/
-├── README.md           # 项目文档
-├── fund_analyzer.py    # 主程序
-├── fund_config.py      # 配置文件（在这里添加您的基金）
-├── requirements.txt    # 依赖配置
-├── __init__.py        # 模块入口
+├── README.md              # 项目文档
+├── fund_analyzer.py       # 主程序
+├── fund_config.py         # 配置文件（在这里添加您的基金）
+├── scheduled_task.py      # 定时任务程序
+├── requirements.txt       # 依赖配置
+├── __init__.py           # 模块入口
 └── examples/
-    └── example_usage.py
+    ├── example_usage.py
+    └── scheduled_task_example.py  # 定时任务使用示例
 ```
+
+## 定时任务使用
+
+### 1. 安装依赖
+
+```bash
+pip install -r requirements.txt
+```
+
+### 2. 立即运行一次（测试）
+
+```bash
+python scheduled_task.py --once
+```
+
+### 3. 启动定时任务（每天 14:40）
+
+```bash
+python scheduled_task.py
+```
+
+### 4. 自定义时间启动
+
+```bash
+# 每天 09:30 运行
+python scheduled_task.py --hour 9 --minute 30
+
+# 每天 15:00 运行
+python scheduled_task.py --hour 15 --minute 0
+```
+
+### 5. 命令行参数说明
+
+- `--once`: 立即运行一次并退出
+- `--hour`: 设置目标小时（默认 14）
+- `--minute`: 设置目标分钟（默认 40）
+- `--test`: 测试通知功能
+
+### 6. 使用 systemd 或 cron 实现后台运行
+
+**Linux 使用 systemd:**
+
+```bash
+# 创建服务文件 /etc/systemd/system/fund-report.service
+# 内容示例：
+# [Unit]
+# Description=Fund Report Scheduler
+# After=network.target
+#
+# [Service]
+# Type=simple
+# User=your_user
+# WorkingDirectory=/path/to/fund_analyzer
+# ExecStart=/usr/bin/python3 scheduled_task.py
+# Restart=always
+#
+# [Install]
+# WantedBy=multi-user.target
+```
+
+**或者使用 crontab:**
+
+```bash
+# 编辑 crontab
+crontab -e
+
+# 添加一行（每天 14:40 运行）
+# 40 14 * * * cd /path/to/fund_analyzer && python fund_analyzer.py >> report.log 2>&1
+```
+
+### 7. 扩展通知功能
+
+你可以修改 `scheduled_task.py` 中的 `send_report()` 方法，添加：
+- 邮件通知
+- 微信通知（企业微信、公众号等）
+- 钉钉机器人通知
+- Telegram Bot 通知
 
 ## 学习要点
 
