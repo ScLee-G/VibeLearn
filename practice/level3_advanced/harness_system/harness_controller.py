@@ -36,6 +36,7 @@ from .resource_manager import (
     SimpleCache,
     ResourceOptimizer
 )
+from .precheck import SystemChecker
 
 
 class HarnessController:
@@ -470,5 +471,38 @@ class HarnessController:
             "platform": platform.platform(),
             "python_version": platform.python_version(),
             "cpu_count": os.cpu_count(),
-            "harness_version": "1.0.0"
+            "harness_version": "1.1.0"
         }
+
+    def precheck(self) -> dict:
+        """执行前置检查"""
+        print("\n执行系统前置检查...")
+        checker = SystemChecker()
+        results = checker.check_all()
+
+        # 保存报告
+        report_path = self.project_path / ".harness" / "precheck_report.json"
+        report_path.parent.mkdir(exist_ok=True)
+        checker.save_report(str(report_path))
+
+        if checker.get_failed():
+            print("\n⚠️  有检查发现问题，请检查并修复后运行")
+        elif checker.get_warnings():
+            print("\n✅ 检查通过，但有警告")
+
+        return {
+            "can_run": checker.can_run(),
+            "warnings": len(checker.get_warnings()),
+            "failed": len(checker.get_failed()),
+            "report_path": str(report_path)
+        }
+
+    def run_with_precheck(self, user_request: str, force_run: bool = False):
+        """运行前先检查再运行"""
+        precheck_result = self.precheck()
+        if not precheck_result['can_run'] and not force_run:
+            print("\n❌ 前置检查未通过！")
+            print("如需跳过检查直接运行请使用 --force 选项")
+            return {"precheck": precheck_result, "run": False}
+        return self.run(user_request)
+

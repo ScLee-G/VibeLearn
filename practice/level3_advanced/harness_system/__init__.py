@@ -15,11 +15,17 @@ Harness Agent 系统 - Anthropic 三 Agent 架构实现
 - TimeoutManager: 超时管理器
 - SimpleCache: 响应缓存
 - ResourceOptimizer: 资源优化器
+- SystemChecker: 系统前置检查器
 
 使用方法:
 ```python
-from harness_system import HarnessController
+from harness_system import HarnessController, SystemChecker
 
+# 首先运行检查
+checker = SystemChecker()
+checker.check_all()
+
+# 然后使用系统
 controller = HarnessController(
     project_path="./my_project",
     project_name="我的项目",
@@ -55,8 +61,9 @@ from .resource_manager import (
     ResourceUsage,
     PerformanceMetrics
 )
+from .precheck import SystemChecker, CheckStatus, CheckResult
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 __all__ = [
     "HarnessController",
     "ExternalMemory",
@@ -78,5 +85,8 @@ __all__ = [
     "SimpleCache",
     "ResourceOptimizer",
     "ResourceUsage",
-    "PerformanceMetrics"
+    "PerformanceMetrics",
+    "SystemChecker",
+    "CheckStatus",
+    "CheckResult"
 ]

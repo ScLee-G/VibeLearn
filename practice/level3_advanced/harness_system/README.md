@@ -2,6 +2,25 @@
 
 基于 Anthropic 三 Agent 架构的 Harness（驾驭工程）框架实现。
 
+---
+
+## ✅ 前置准备（第一步）
+
+**请在使用系统前检查所有条件！**
+
+### 快速检查（推荐）
+
+```bash
+cd /workspace/practice/level3_advanced/harness_system
+python run_harness.py --precheck
+```
+
+如果检查失败，请修复问题再继续。
+
+完整前置准备清单请查看 [SETUP.md](./SETUP.md)
+
+---
+
 ## 🚀 快速开始
 
 ### 1. 安装依赖
@@ -21,7 +40,13 @@ export OPENAI_API_KEY=your_api_key
 export OPENAI_BASE_URL=https://api.deepseek.com
 ```
 
-### 3. 运行系统
+### 3. 验证环境（必做！）
+
+```bash
+python run_harness.py --precheck
+```
+
+### 4. 运行系统
 
 #### 方式一：直接运行任务（推荐）
 
@@ -41,19 +66,34 @@ python run_harness.py --interactive
 python demo.py
 ```
 
-## 📖 使用方法
-
-### 基本用法
+#### 方式四：强制运行（跳过前置检查，不推荐）
 
 ```bash
-# 标准用法
+python run_harness.py --force "任务"
+```
+
+## 📖 使用方法
+
+### 完整命令列表
+
+```bash
+# 1. 检查环境
+python run_harness.py --precheck
+
+# 2. 标准用法
 python run_harness.py "你的任务描述"
 
-# 指定项目名称
+# 3. 指定项目名称
 python run_harness.py --project my_project "构建用户管理系统"
 
-# 交互模式
+# 4. 交互模式
 python run_harness.py --interactive
+
+# 5. 强制运行（跳过前置检查）
+python run_harness.py --force "任务"
+
+# 6. 跳过前置检查直接运行
+python run_harness.py --skip-precheck "任务"
 ```
 
 ### 性能优化选项
@@ -62,7 +102,7 @@ python run_harness.py --interactive
 # 自定义资源限制
 python run_harness.py --max-memory 85.0 --max-cpu 90.0 "任务"
 
-# 禁用资源监控（减少开销
+# 禁用资源监控（减少开销）
 python run_harness.py --no-resource-monitor "任务"
 
 # 修改超时时间
@@ -70,6 +110,10 @@ python run_harness.py --timeout 600 "任务"
 ```
 
 详见 [PERFORMANCE.md](./PERFORMANCE.md) 完整优化指南。
+
+### 前置准备完整指南
+
+所有前置准备的详细说明请查看 [SETUP.md](./SETUP.md)
 
 ### Python API
 

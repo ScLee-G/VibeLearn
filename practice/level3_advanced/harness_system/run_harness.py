@@ -8,6 +8,8 @@ Harness Agent 系统 - 主入口
 示例:
     python run_harness.py "帮我创建一个待办事项 Web 应用"
     python run_harness.py "分析 sales.csv 文件，生成销售报告"
+    python run_harness.py --precheck           # 只运行系统检查
+    python run_harness.py --force "任务"        # 跳过检查直接运行
 """
 
 import os
@@ -18,6 +20,7 @@ from pathlib import Path
 import openai
 
 from harness_system import HarnessController
+from harness_system.precheck import SystemChecker
 
 
 def parse_args():
@@ -100,6 +103,26 @@ def parse_args():
         help="单个功能超时时间 (秒, 默认: 300)"
     )
 
+    parser.add_argument(
+        "--precheck",
+        "-c",
+        action="store_true",
+        help="只运行系统前置检查"
+    )
+
+    parser.add_argument(
+        "--force",
+        "-f",
+        action="store_true",
+        help="强制运行，跳过前置检查"
+    )
+
+    parser.add_argument(
+        "--skip-precheck",
+        action="store_true",
+        help="跳过前置检查直接运行"
+    )
+
     return parser.parse_args()
 
 
@@ -121,6 +144,7 @@ def interactive_mode(controller: HarnessController):
     print("  status      - 查看项目状态")
     print("  system      - 查看系统信息")
     print("  performance - 查看性能报告")
+    print("  precheck    - 运行前置检查")
     print("  clear-cache - 清空响应缓存")
     print("  quit/exit   - 退出")
     print("=" * 60 + "\n")
@@ -166,6 +190,10 @@ def interactive_mode(controller: HarnessController):
                 controller.clear_cache()
                 continue
 
+            if user_input.lower() == "precheck":
+                controller.precheck()
+                continue
+
             if not user_input:
                 continue
 
@@ -187,12 +215,6 @@ def main():
     """主函数"""
     args = parse_args()
 
-    if not os.getenv("OPENAI_API_KEY"):
-        print("错误: 请设置 OPENAI_API_KEY 环境变量")
-        print("Linux/Mac: export OPENAI_API_KEY=your_api_key")
-        print("Windows: set OPENAI_API_KEY=your_api_key")
-        sys.exit(1)
-
     project_path = Path(args.path) / args.project
     project_path.mkdir(parents=True, exist_ok=True)
 
@@ -203,7 +225,24 @@ def main():
     print(f"路径: {project_path}")
     print(f"模型: {args.model}")
     print(f"资源监控: {'禁用' if args.no_resource_monitor else '启用'}")
+
+    if args.precheck:
+        print(f"前置检查模式: 启用")
     print("=" * 60)
+
+    # 只运行前置检查
+    if args.precheck:
+        print("\n运行前置检查...")
+        checker = SystemChecker()
+        results = checker.check_all()
+        print()
+        print("完整设置指南参见: SETUP.md")
+        sys.exit(0 if checker.can_run() else 1)
+
+    # 快速检查 API key
+    if not os.getenv("OPENAI_API_KEY"):
+        print("\n⚠️  警告: 未设置 OPENAI_API_KEY！")
+        print("完整检查请运行: python run_harness.py --precheck")
 
     client = create_llm_client(args.model)
 
@@ -221,6 +260,17 @@ def main():
     if args.interactive:
         interactive_mode(controller)
     elif args.task:
+        # 前置检查（除非被跳过）
+        if not args.skip_precheck and not args.force:
+            print("\n执行前置检查...")
+            precheck = controller.precheck()
+            if not precheck['can_run']:
+                print("\n❌ 前置检查未通过！")
+                print("请先运行: python run_harness.py --precheck 检查问题")
+                print("如需强制运行，请使用 --force 或 --skip-precheck")
+                print("完整设置指南参见: SETUP.md")
+                sys.exit(1)
+
         print(f"\n开始执行任务: {args.task}\n")
         result = controller.run(args.task)
 
@@ -233,8 +283,13 @@ def main():
 
         print("\n详细结果已保存到项目目录的 .harness/ 文件夹中")
     else:
-        print("错误: 请提供任务描述或使用 --interactive 模式")
-        print("使用 --help 查看更多选项")
+        print("\n错误: 请提供任务描述或使用 --interactive 模式")
+        print("\n常用命令:")
+        print("  1. 检查环境: python run_harness.py --precheck")
+        print("  2. 运行任务: python run_harness.py \"你的任务\"")
+        print("  3. 交互模式: python run_harness.py --interactive")
+        print("\n使用 --help 查看更多选项")
+        print("完整设置指南参见: SETUP.md")
         sys.exit(1)
 
 
