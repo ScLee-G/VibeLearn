@@ -1,4 +1,4 @@
-# Vibe-Coding 学习路径规划
+# VibeLearn 学习路径规划
 
 ## 📅 总览
 

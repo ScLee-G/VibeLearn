@@ -1,4 +1,4 @@
-# Vibe-Coding 技能矩阵
+# VibeLearn 技能矩阵
 
 ## 🎯 技能分类
 

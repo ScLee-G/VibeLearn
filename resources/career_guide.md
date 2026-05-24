@@ -460,7 +460,7 @@
 ## 📚 学习资源推荐
 
 ### 学习路径
-- [Vibe-Coding 学习路径](../learning_paths/learning_path.md)
+- [VibeLearn 学习路径](../learning_paths/learning_path.md)
 - [AI 核心概念详解](../theory/core_concepts.md)
 
 ### 实践项目
