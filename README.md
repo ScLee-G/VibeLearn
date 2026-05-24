@@ -36,7 +36,8 @@
 ├── practice/                 # 实践项目
 │   ├── level1_basic/         # 入门级项目
 │   ├── level2_intermediate/  # 进阶级项目
-│   │   └── financial_news/   # 金融新闻简报系统
+│   │   ├── financial_news/   # 金融新闻简报系统
+│   │   └── fund_analyzer/    # 基金分析系统
 │   └── level3_advanced/     # 高级项目
 │       └── harness_system/   # Harness 驾驭系统
 ├── resources/                # 学习资源
@@ -69,7 +70,7 @@
 - 任务拆解与规划
 - AI 代码生成技术
 
-**实践项目**：智能代码生成器、数据处理 Agent、自动化工作流、金融新闻简报系统
+**实践项目**：智能代码生成器、数据处理 Agent、自动化工作流、金融新闻简报系统、基金分析系统
 
 ---
 
