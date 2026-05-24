@@ -11,17 +11,31 @@ Harness 特性:
 - 上下文压缩
 - 错误恢复
 - 状态管理
+- 资源监控
+- 性能追踪
+- 超时控制
+- 缓存优化
 """
 
 import os
+import sys
 import json
+import time
 from typing import Optional, Any
 from pathlib import Path
+from dataclasses import asdict
 
 from .harness_base import BaseAgent, AgentRole, Feature, Contract, TaskStatus, Sprint
 from .memory_system import ExternalMemory
 from .context_manager import ContextManager
 from .agents import InitializerAgent, GeneratorAgent, EvaluatorAgent
+from .resource_manager import (
+    ResourceMonitor,
+    PerformanceTracker,
+    TimeoutManager,
+    SimpleCache,
+    ResourceOptimizer
+)
 
 
 class HarnessController:
@@ -31,12 +45,24 @@ class HarnessController:
         self,
         project_path: str,
         project_name: str,
-        llm_client: Any
+        llm_client: Any,
+        enable_resource_monitoring: bool = True,
+        feature_timeout_seconds: int = 300,
+        max_cpu_percent: float = 95.0,
+        max_memory_percent: float = 90.0,
+        max_disk_percent: float = 95.0,
     ):
         self.project_path = Path(project_path)
         self.project_name = project_name
         self.llm_client = llm_client
 
+        # 资源配置
+        self.enable_resource_monitoring = enable_resource_monitoring
+        self.max_cpu_percent = max_cpu_percent
+        self.max_memory_percent = max_memory_percent
+        self.max_disk_percent = max_disk_percent
+
+        # 核心组件
         self.memory = ExternalMemory(str(self.project_path))
         self.context_manager = ContextManager()
 
@@ -44,15 +70,61 @@ class HarnessController:
         self.generator = GeneratorAgent(llm_client, self.memory, self.context_manager)
         self.evaluator = EvaluatorAgent(llm_client, self.memory, self.context_manager)
 
+        # 性能管理
+        self.resource_monitor = ResourceMonitor(str(self.project_path / ".harness"))
+        self.performance_tracker = PerformanceTracker()
+        self.timeout_manager = TimeoutManager(feature_timeout_seconds)
+        self.response_cache = SimpleCache(max_size=50, ttl_seconds=1800)
+        self.resource_optimizer = ResourceOptimizer()
+
+        # 状态
         self.current_sprint: Optional[Sprint] = None
         self.current_feature: Optional[Feature] = None
         self.current_contract: Optional[Contract] = None
+        self._resource_warning_shown = False
+
+    def check_resources(self) -> tuple[bool, list[str]]:
+        """检查系统资源是否充足"""
+        if not self.enable_resource_monitoring:
+            return True, []
+
+        snapshot = self.resource_monitor.snapshot()
+        warnings = []
+
+        if snapshot.cpu_percent > self.max_cpu_percent:
+            warnings.append(f"CPU 使用率过高: {snapshot.cpu_percent:.1f}% (上限: {self.max_cpu_percent}%)")
+
+        if snapshot.memory_percent > self.max_memory_percent:
+            warnings.append(f"内存使用率过高: {snapshot.memory_percent:.1f}% (上限: {self.max_memory_percent}%)")
+
+        if snapshot.disk_percent > self.max_disk_percent:
+            warnings.append(f"磁盘空间不足: {snapshot.disk_percent:.1f}% (上限: {self.max_disk_percent}%)")
+
+        return len(warnings) == 0, warnings
 
     def initialize_project(self, user_request: str) -> dict:
         """初始化项目"""
         print("=" * 60)
         print("Harness 系统启动")
         print("=" * 60)
+
+        # 启动性能追踪
+        self.performance_tracker.start()
+
+        # 检查资源
+        if self.enable_resource_monitoring:
+            print("\n[系统] 检查资源状态...")
+            snapshot = self.resource_monitor.snapshot()
+            print(f"  - 内存使用: {snapshot.memory_percent:.1f}%")
+            print(f"  - CPU 使用: {snapshot.cpu_percent:.1f}%")
+            print(f"  - 磁盘使用: {snapshot.disk_percent:.1f}%")
+
+            ok, warnings = self.check_resources()
+            if not ok:
+                print("\n⚠️ 资源警告:")
+                for w in warnings:
+                    print(f"   - {w}")
+                print("\n继续执行可能影响性能，建议关闭其他应用。\n")
 
         init_result = self.initializer.initialize_project(
             self.project_name,
@@ -63,6 +135,10 @@ class HarnessController:
         print(f"  - 分析任务: {init_result['task_analysis']['core_problem']}")
         print(f"  - 功能数量: {len(init_result['features'])}")
         print(f"  - Sprint 数量: {len(init_result['sprints'])}")
+
+        # 预估资源需求
+        estimated_disk = self.resource_optimizer.estimate_disk_needed(len(init_result['features']))
+        print(f"  - 预估磁盘需求: {estimated_disk:.1f} MB")
 
         return init_result
 
@@ -107,11 +183,24 @@ class HarnessController:
         print(f"开始执行功能: {feature.name}")
         print(f"{'-' * 60}")
 
+        # 执行前检查资源
+        if self.enable_resource_monitoring:
+            ok, warnings = self.check_resources()
+            if not ok and not self._resource_warning_shown:
+                print("\n⚠️ 资源警告:")
+                for w in warnings:
+                    print(f"   - {w}")
+                self._resource_warning_shown = True
+                print()
+
         self.current_feature = feature
         self.memory.update_state({
             "current_feature": feature.id,
             "status": TaskStatus.EXECUTING.value
         })
+
+        # 设置超时
+        self.timeout_manager.set_timeout(f"feature_{feature.id}", 300)
 
         contract = self._negotiate_and_create_contract(feature)
 
@@ -282,16 +371,53 @@ class HarnessController:
             "sprints": []
         }
 
-        while self.memory.get_pending_features():
-            sprint_result = self.execute_sprint()
-            all_results["sprints"].append(sprint_result)
+        try:
+            while self.memory.get_pending_features():
+                # 周期性资源检查
+                if self.enable_resource_monitoring:
+                    self.resource_monitor.snapshot()
 
-            if sprint_result.get("summary", {}).get("failed", 0) >= 2:
-                print("\n警告: Sprint 中有多个功能失败，暂停检查")
-                break
+                sprint_result = self.execute_sprint()
+                all_results["sprints"].append(sprint_result)
 
+                if sprint_result.get("summary", {}).get("failed", 0) >= 2:
+                    print("\n警告: Sprint 中有多个功能失败，暂停检查")
+                    break
+
+                # Sprint 之间小休息
+                time.sleep(1)
+
+        except KeyboardInterrupt:
+            print("\n\n用户中断，保存进度...")
+
+        except Exception as e:
+            print(f"\n\n错误: {e}")
+            import traceback
+            traceback.print_exc()
+
+        finally:
+            # 保存最终状态
+            self._finalize_execution(all_results)
+
+        return all_results
+
+    def _finalize_execution(self, all_results: dict):
+        """完成执行后的清理和报告"""
         final_status = self.get_project_status()
         all_results["final_status"] = final_status
+
+        # 停止性能追踪
+        self.performance_tracker.record_feature_completion(
+            final_status['completed_features'],
+            final_status['completed_features'] + final_status['pending_features']
+        )
+        performance_metrics = self.performance_tracker.stop()
+        all_results["performance"] = asdict(performance_metrics)
+
+        # 保存性能数据
+        metrics_path = self.project_path / ".harness" / "performance.json"
+        with open(metrics_path, "w") as f:
+            json.dump(asdict(performance_metrics), f, indent=2)
 
         print("\n" + "=" * 60)
         print("Harness 执行完成")
@@ -300,4 +426,49 @@ class HarnessController:
         print(f"完成功能: {final_status['completed_features']}")
         print(f"待处理: {final_status['pending_features']}")
 
-        return all_results
+        # 显示性能报告
+        print("\n性能报告:")
+        print(f"  总耗时: {performance_metrics.total_duration_seconds:.1f} 秒")
+        print(f"  API 调用: {performance_metrics.total_api_calls}")
+        print(f"  平均响应: {performance_metrics.avg_response_time_seconds:.2f} 秒/次")
+
+        # 资源使用统计
+        if self.enable_resource_monitoring:
+            final_snapshot = self.resource_monitor.snapshot()
+            print(f"\n最终资源状态:")
+            print(f"  内存: {final_snapshot.memory_percent:.1f}%")
+            print(f"  CPU: {final_snapshot.cpu_percent:.1f}%")
+            print(f"  磁盘: {final_snapshot.disk_percent:.1f}%")
+
+            avg_usage = self.resource_monitor.get_average_usage()
+            if avg_usage:
+                print(f"\n平均资源使用:")
+                print(f"  内存: {avg_usage['avg_memory_percent']:.1f}%")
+                print(f"  CPU: {avg_usage['avg_cpu_percent']:.1f}%")
+
+        print(f"\n详细日志和数据已保存到: {self.project_path / '.harness'}")
+
+    def get_performance_report(self) -> dict:
+        """获取性能报告"""
+        return {
+            "current": asdict(self.performance_tracker.stop()) if self.performance_tracker._start_time else None,
+            "resource": self.resource_monitor.get_average_usage(),
+            "cache_size": self.response_cache.size()
+        }
+
+    def clear_cache(self):
+        """清空响应缓存"""
+        self.response_cache.clear()
+        print("缓存已清空")
+
+    def get_system_info(self) -> dict:
+        """获取系统信息"""
+        import platform
+
+        return {
+            "system": platform.system(),
+            "platform": platform.platform(),
+            "python_version": platform.python_version(),
+            "cpu_count": os.cpu_count(),
+            "harness_version": "1.0.0"
+        }

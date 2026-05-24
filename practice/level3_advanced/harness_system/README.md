@@ -56,6 +56,21 @@ python run_harness.py --project my_project "构建用户管理系统"
 python run_harness.py --interactive
 ```
 
+### 性能优化选项
+
+```bash
+# 自定义资源限制
+python run_harness.py --max-memory 85.0 --max-cpu 90.0 "任务"
+
+# 禁用资源监控（减少开销
+python run_harness.py --no-resource-monitor "任务"
+
+# 修改超时时间
+python run_harness.py --timeout 600 "任务"
+```
+
+详见 [PERFORMANCE.md](./PERFORMANCE.md) 完整优化指南。
+
 ### Python API
 
 ```python
@@ -68,11 +83,17 @@ client = openai.OpenAI(
     base_url=os.getenv("OPENAI_BASE_URL")
 )
 
-# 创建控制器
+# 创建控制器（带性能配置）
 controller = HarnessController(
     project_path="./my_project",
     project_name="我的项目",
-    llm_client=client
+    llm_client=client,
+    
+    # 性能配置
+    enable_resource_monitoring=True,  # 启用资源监控
+    max_memory_percent=90.0,         # 内存使用上限 90%
+    max_cpu_percent=95.0,            # CPU使用上限 95%
+    feature_timeout_seconds=300        # 功能超时时间 5分钟
 )
 
 # 运行任务
@@ -80,6 +101,9 @@ result = controller.run("帮我构建一个用户管理系统")
 
 # 查看结果
 print(f"完成率: {result['final_status']['completion_rate']:.1%}")
+
+# 获取性能报告
+perf_report = controller.get_performance_report()
 ```
 
 ## 🏗️ 系统架构

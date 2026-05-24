@@ -66,6 +66,40 @@ def parse_args():
         help="交互模式"
     )
 
+    parser.add_argument(
+        "--no-resource-monitor",
+        action="store_true",
+        help="禁用资源监控"
+    )
+
+    parser.add_argument(
+        "--max-memory",
+        type=float,
+        default=90.0,
+        help="最大内存使用率 (百分比, 默认: 90.0)"
+    )
+
+    parser.add_argument(
+        "--max-cpu",
+        type=float,
+        default=95.0,
+        help="最大 CPU 使用率 (百分比, 默认: 95.0)"
+    )
+
+    parser.add_argument(
+        "--max-disk",
+        type=float,
+        default=95.0,
+        help="最大磁盘使用率 (百分比, 默认: 95.0)"
+    )
+
+    parser.add_argument(
+        "--timeout",
+        type=int,
+        default=300,
+        help="单个功能超时时间 (秒, 默认: 300)"
+    )
+
     return parser.parse_args()
 
 
@@ -82,8 +116,13 @@ def interactive_mode(controller: HarnessController):
     print("\n" + "=" * 60)
     print("Harness 交互模式")
     print("=" * 60)
-    print("输入你的任务，或输入 'status' 查看项目状态")
-    print("输入 'quit' 或 'exit' 退出")
+    print("可用命令:")
+    print("  <任务描述>  - 执行任务")
+    print("  status      - 查看项目状态")
+    print("  system      - 查看系统信息")
+    print("  performance - 查看性能报告")
+    print("  clear-cache - 清空响应缓存")
+    print("  quit/exit   - 退出")
     print("=" * 60 + "\n")
 
     while True:
@@ -100,6 +139,31 @@ def interactive_mode(controller: HarnessController):
                 print(f"完成率: {status['completion_rate']:.1%}")
                 print(f"已完成: {status['completed_features']} 功能")
                 print(f"待处理: {status['pending_features']} 功能\n")
+                continue
+
+            if user_input.lower() == "system":
+                info = controller.get_system_info()
+                print(f"\n系统信息:")
+                for k, v in info.items():
+                    print(f"  {k}: {v}")
+                print()
+                continue
+
+            if user_input.lower() == "performance":
+                report = controller.get_performance_report()
+                print(f"\n性能报告:")
+                if report.get("current"):
+                    print(f"  总耗时: {report['current'].get('total_duration_seconds', 0):.1f}s")
+                    print(f"  API 调用: {report['current'].get('total_api_calls', 0)}")
+                print(f"  缓存大小: {report.get('cache_size', 0)}")
+                if report.get("resource"):
+                    print(f"  平均内存: {report['resource'].get('avg_memory_percent', 0):.1f}%")
+                    print(f"  平均 CPU: {report['resource'].get('avg_cpu_percent', 0):.1f}%")
+                print()
+                continue
+
+            if user_input.lower() == "clear-cache":
+                controller.clear_cache()
                 continue
 
             if not user_input:
@@ -138,6 +202,7 @@ def main():
     print(f"项目: {args.project}")
     print(f"路径: {project_path}")
     print(f"模型: {args.model}")
+    print(f"资源监控: {'禁用' if args.no_resource_monitor else '启用'}")
     print("=" * 60)
 
     client = create_llm_client(args.model)
@@ -145,7 +210,12 @@ def main():
     controller = HarnessController(
         project_path=str(project_path),
         project_name=args.project,
-        llm_client=client
+        llm_client=client,
+        enable_resource_monitoring=not args.no_resource_monitor,
+        max_memory_percent=args.max_memory,
+        max_cpu_percent=args.max_cpu,
+        max_disk_percent=args.max_disk,
+        feature_timeout_seconds=args.timeout
     )
 
     if args.interactive:
