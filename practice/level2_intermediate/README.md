@@ -19,51 +19,41 @@
 | 调试难度 | ⭐⭐☆ |
 | 创新性 | ⭐⭐☆ |
 
+## 理论学习
+
+在开始实践项目前，建议先学习相关理论：
+- [Agent 架构原理](../../theory/agent_principles/README.md)
+- [理论学习指南](../../theory/theory_guide.md)
+
 ## 实践项目
 
-### 项目 1: 智能代码生成器
+### 项目 1: 数据处理 Agent
 
-**目标**：创建一个能够根据需求生成 Python 代码的 Agent
-
-**技术要点**：
-- 需求理解与代码生成
-- 代码验证与调试
-- 结果优化
-
-**文件**：
-- `code_generator.py`
-
----
-
-### 项目 2: 数据处理 Agent
-
-**目标**：实现一个自动化数据处理 Agent
+**目标**：实现一个自动化数据处理 Agent，通过 AI 生成代码并执行
 
 **技术要点**：
-- 地址转经纬度
+- 地址转经纬度（通过 LLM
 - Excel 数据处理
-- 距离计算
+- 距离计算（Haversine 公式）
+- 代码生成与执行
 
 **文件**：
-- `agent_workflow.py` - 核心工作流
-- `sites_geocoded.xlsx` - 示例数据
+- [agent_workflow.py](agent_workflow.py) - 核心工作流
+- [create_sample_excel.py](create_sample_excel.py) - 创建示例数据
+- sites_geocoded.xlsx - 示例数据（运行 create_sample_excel.py 生成
+
+**使用方法**：
+1. 先运行 `python create_sample_excel.py` 生成示例数据
+2. 然后运行 `python agent_workflow.py <地址> <城市>` 来执行数据处理
 
 ---
-
-### 项目 3: 自动化工作流
-
-**目标**：构建一个多步骤自动化工作流
-
-**技术要点**：
-- 任务拆解
-- 步骤编排
-- 错误处理与重试
-
-**文件**：
-- `workflow_orchestrator.py`
 
 ## 学习资源
 
-1. LangChain 文档
-2. Agent 设计模式
-3. AI 代码生成最佳实践
+1. [LangChain 官方文档](https://python.langchain.com/)
+2. [Agent 架构原理](../../theory/agent_principles/README.md)
+3. [理论学习指南](../../theory/theory_guide.md)
+
+## 下一步
+
+完成 Level 2 后，继续到 [Level 3: 高级应用](../level3_advanced/README.md) 学习 RAG 和多 Agent 系统。

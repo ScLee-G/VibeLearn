@@ -54,7 +54,7 @@
 - OpenAI API 使用方法
 - Prompt 工程基础技巧
 
-**实践项目**：聊天机器人、文本分类器、代码补全工具
+**实践项目**：[Level 1 实践项目](practice/level1_basic/README.md)
 
 ---
 
@@ -67,20 +67,20 @@
 - 任务拆解与规划
 - AI 代码生成技术
 
-**实践项目**：智能代码生成器、数据处理 Agent、自动化工作流
+**实践项目**：[Level 2 实践项目](practice/level2_intermediate/README.md) - 数据处理 Agent
 
 ---
 
 ### Level 3: 高级应用（4-6 周）
 
-**目标**：掌握 RAG 和复杂系统架构
+**目标**：掌握多 Agent 协作和复杂系统架构
 
 **核心能力**：
-- RAG 检索增强生成
-- 向量数据库应用
-- 多 Agent 协作
+- 多 Agent 协作模式
+- 复杂工作流编排
+- 企业级 AI 应用
 
-**实践项目**：知识库问答系统、多模态 Agent、企业级 AI 应用
+**实践项目**：[Level 3 实践项目](practice/level3_advanced/README.md) - Harness Agent 系统
 
 ---
 

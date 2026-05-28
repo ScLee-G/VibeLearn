@@ -87,19 +87,22 @@
 ## 📚 推荐学习资源
 
 ### 入门阶段
-1. OpenAI API 官方文档
-2. Prompt Engineering Guide
-3. Hugging Face 教程
+1. [OpenAI API 官方文档](https://platform.openai.com/docs)
+2. [Prompt Engineering Guide](https://www.promptingguide.ai/)
+3. [理论学习指南](../theory/theory_guide.md)
+4. [Level 1 实践项目](../practice/level1_basic/README.md)
 
 ### 进阶阶段
-1. LangChain 官方文档
-2. Agent Info 网站
-3. DeepSeek 官方文档
+1. [LangChain 官方文档](https://python.langchain.com/)
+2. [Agent 架构原理](../theory/agent_principles/README.md)
+3. [理论学习指南](../theory/theory_guide.md)
+4. [Level 2 实践项目](../practice/level2_intermediate/README.md)
 
 ### 高级阶段
-1. RAG 技术白皮书
-2. Pinecone/Chroma 文档
-3. 企业 AI 架构设计
+1. [RAG 技术体系](../theory/rag_techniques/README.md)
+2. [Agent 架构原理](../theory/agent_principles/README.md)
+3. [理论学习指南](../theory/theory_guide.md)
+4. [Level 3 实践项目](../practice/level3_advanced/README.md)
 
 ---
 
