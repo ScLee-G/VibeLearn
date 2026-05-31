@@ -2,7 +2,6 @@
 金融新闻智能助手 - 自动获取并分析最新金融新闻
 """
 
-import requests
 from datetime import datetime, date
 from typing import List, Dict, Optional
 import json
