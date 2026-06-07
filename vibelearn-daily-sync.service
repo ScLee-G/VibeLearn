@@ -1,0 +1,12 @@
+[Unit]
+Description=VibeLearn Daily Sync to GitHub
+
+[Service]
+Type=oneshot
+ExecStart=/workspace/daily_sync.sh
+User=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
