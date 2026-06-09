@@ -20,10 +20,12 @@ log "========== 开始每日同步 =========="
 log "仓库路径: $REPO_PATH"
 
 # 检查Git用户配置
-if ! git config user.email >/dev/null 2>&1 || ! git config user.name >/dev/null 2>&1; then
+git_email=$(git config user.email 2>/dev/null)
+if [ -z "$git_email" ]; then
     log "WARNING: Git用户未配置，尝试自动配置..."
     git config user.email "ci-auto-sync@vibelearn.local"
     git config user.name "VibeLearn Auto Sync"
+    log "已配置Git用户: ci-auto-sync@vibelearn.local"
 fi
 
 # 拉取最新代码
@@ -54,12 +56,13 @@ git add . 2>&1 | tee -a "$LOG_FILE"
 commit_msg="Daily sync: $(date "+%Y-%m-%d %H:%M")"
 
 log "执行 git commit -m \"$commit_msg\""
-git commit -m "$commit_msg" >> "$LOG_FILE" 2>&1
-if [ $? -ne 0 ]; then
-    log "ERROR: git commit 失败"
+if git commit -m "$commit_msg" >> "$LOG_FILE" 2>&1; then
+    log "提交成功"
+else
+    commit_result=$(git commit -m "$commit_msg" 2>&1)
+    log "ERROR: git commit 失败 - $commit_result"
     exit 1
 fi
-log "提交成功"
 
 # 推送到远程
 log "执行 git push origin main"
