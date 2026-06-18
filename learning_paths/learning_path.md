@@ -35,6 +35,11 @@
 | 5 | 代码生成 | AI 写代码、代码验证 | 实现代码生成器 |
 | 6 | 任务编排 | 工作流设计、状态管理 | 构建数据处理 Agent |
 | 7 | 结果验证 | AI 自检、执行验证 | 完善 Agent 工作流 |
+| 7+ | 实战扩展 | 规则引擎、去重、缓存、增量更新 | 金融新闻简报系统 + 基金分析回测 |
+
+**进阶实战推荐**：
+- 📰 运行 [金融新闻智能简报系统](../practice/level2_intermediate/financial_news/financial_news_advanced.py) — 学习多源数据聚合、规则引擎评分、去重、LLM 摘要
+- 📊 运行 [基金分析与策略回测系统](../practice/level2_intermediate/fund_analyzer/fund_analyzer_advanced.py) — 学习技术指标、多策略回测、资产配置
 
 **能力评估**：
 - ✅ 能设计 Agent 架构
@@ -45,15 +50,20 @@
 
 ### 阶段三：高级应用（4-6 周）
 
-**目标**：掌握 RAG 和复杂系统
+**目标**：掌握 RAG 和复杂 Agent 系统
 
 | 周 | 主题 | 学习内容 | 实践任务 |
 |:---|:---|:---|:---|
-| 8 | RAG 基础 | 检索增强、向量数据库 | 学习向量数据库使用 |
-| 9 | RAG 实践 | 文档处理、检索策略 | 实现简单 RAG 系统 |
-| 10 | 多模态 | 图像、语音、视频 | 构建多模态 Agent |
-| 11 | 多 Agent | 协作模式、任务分配 | 实现多 Agent 系统 |
-| 12 | 企业部署 | 性能优化、安全合规 | 完成企业级项目 |
+| 8 | RAG 基础 | 检索增强、向量数据库、文档切分 | 学习向量数据库使用 |
+| 9 | RAG 实践 | 混合检索、Rerank、RAGAS 评估 | 实现多模态 RAG 知识库问答 |
+| 10 | Skill 路由 | Skill 分层路由、任务分解 | 构建基于 Skill 路由的编码 Agent |
+| 11 | 多 Agent 协作 | 三 Agent 协作、权限控制、记忆沉淀 | 实现 Harness 驾驭系统 / MiniCode Agent |
+| 12 | 企业部署 | 性能优化、安全合规、上下文压缩 | 完成企业级项目 |
+
+**高级实战推荐**：
+- 🧠 运行 [多模态 RAG 知识库问答系统](../practice/level3_advanced/multimodal_rag.py) — 学习多格式解析、语义切分、混合检索、RAGAS 评估
+- 🎯 运行 [Harness 驾驭系统增强版](../practice/level3_advanced/harness_system/harness_advanced.py) — 学习 Skill 路由、自进化记忆、分层上下文压缩、中心化多 Agent 协作
+- 🤖 运行 [MiniCode Agent](../practice/level3_advanced/minicode_agent.py) — 学习 Claude Code 架构思想、程序化经验沉淀、安全审查、子 Agent 权限控制
 
 **能力评估**：
 - ✅ 能构建 RAG 系统

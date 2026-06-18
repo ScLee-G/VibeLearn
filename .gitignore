@@ -1,3 +1,8 @@
-# Sync logs
-sync.log
-sync_cron.log
+__pycache__/
+*.pyc
+.cache/
+.news_cache/
+.rag_demo_index/
+.harness_projects/
+.minicode_memory/
+outputs/
